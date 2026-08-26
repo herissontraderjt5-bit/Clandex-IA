@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  code, kbd, samp, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom sleek scrollbar for trading interfaces */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Futuristic Cyber Keyframes */
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverseSlow {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes cyberPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 122, 0, 0.4), 0 0 35px rgba(255, 122, 0, 0.2), inset 0 0 15px rgba(255, 122, 0, 0.3);
+    border-color: rgba(255, 122, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 122, 0, 0.85), 0 0 60px rgba(255, 122, 0, 0.45), inset 0 0 25px rgba(255, 170, 0, 0.6);
+    border-color: rgba(255, 200, 0, 0.95);
+  }
+}
+
+@keyframes scanLaserHorizontal {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 100%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+@keyframes scanLaserVertical {
+  0% {
+    left: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    left: 100%;
+    opacity: 1;
+  }
+  100% {
+    left: 0%;
+    opacity: 0.8;
+  }
+}
+
+@keyframes holographicShimmer {
+  0% { transform: translate(-100%, -100%) rotate(45deg); }
+  100% { transform: translate(200%, 200%) rotate(45deg); }
+}
+
+@keyframes sonarWave {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes matrixFlicker {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 0.7; }
+  75% { opacity: 0.85; }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+.animate-spin-fast {
+  animation: spinSlow 3s linear infinite;
+}
+
+.animate-spin-reverse-slow {
+  animation: spinReverseSlow 16s linear infinite;
+}
+
+.animate-spin-reverse-fast {
+  animation: spinReverseSlow 4s linear infinite;
+}
+
+.animate-radar {
+  animation: radarSweep 2.5s linear infinite;
+}
+
+.animate-cyber-glow {
+  animation: cyberPulseGlow 3s ease-in-out infinite;
+}
+
+.animate-sonar-1 {
+  animation: sonarWave 2.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+.animate-sonar-2 {
+  animation: sonarWave 2.5s cubic-bezier(0, 0.2, 0.8, 1) infinite 1.25s;
+}
+
+.animate-scan-laser {
+  animation: scanLaserHorizontal 2.4s ease-in-out infinite;
+}
+
+.animate-scan-laser-v {
+  animation: scanLaserVertical 3s ease-in-out infinite;
+}
+
+.animate-matrix-flicker {
+  animation: matrixFlicker 1.8s ease-in-out infinite;
+}
+

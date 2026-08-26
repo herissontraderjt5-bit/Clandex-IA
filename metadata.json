@@ -1,0 +1,6 @@
+{
+  "name": "CandleX AI",
+  "description": "Plataforma de inteligência artificial para análise de mercado em tempo real e confluência técnica com traderoom integrado da corretora Hiove.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
