@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Wallet, QrCode, CreditCard, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { X, Wallet, QrCode, CreditCard, ShieldCheck, CheckCircle2, ExternalLink } from "lucide-react";
 import { soundManager } from "../utils/soundEffects";
 
 interface DepositModalProps {
@@ -137,6 +137,15 @@ export const DepositModal: React.FC<DepositModalProps> = ({
             className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#FF8C00] via-[#FF7A00] to-[#E65100] hover:from-[#FFA022] hover:to-[#FF6D00] text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(255,122,0,0.35)] transition-all cursor-pointer active:scale-[0.98]"
           >
             {successToast ? "DEPÓSITO CONFIRMADO!" : `CONFIRMAR DEPÓSITO DE $${amount}`}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => window.open("https://hiove.io/gSBstV", "_blank")}
+            className="w-full py-2.5 px-3 rounded-xl bg-[#141A26] hover:bg-[#1E2638] border border-[#FF7A00]/40 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <span>Depositar na Plataforma Oficial Hiove</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

@@ -14,6 +14,10 @@ import {
   Zap,
   TrendingUp,
   X,
+  Bot,
+  Cpu,
+  Activity,
+  Layers,
 } from "lucide-react";
 import { AccessSession } from "../types";
 import { soundManager } from "../utils/soundEffects";
@@ -27,6 +31,10 @@ interface AccessGateModalProps {
   canClose?: boolean;
   onClose?: () => void;
 }
+
+const HIOVE_REGISTER_URL = "https://hiove.io/gSBstV";
+const WHATSAPP_PHONE = "+55 69 9980-2629";
+const WHATSAPP_URL = "https://wa.me/556999802629?text=Ol%C3%A1%21%20Preciso%20de%20suporte%20para%20ativar%20meu%20acesso%20no%20CandleX%20AI%20Hiove.";
 
 export const AccessGateModal: React.FC<AccessGateModalProps> = ({
   isOpen,
@@ -49,7 +57,7 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
 
     if (!cleanEmail || !cleanEmail.includes("@") || !cleanEmail.includes(".")) {
       setResultState("ERROR");
-      setMessage("Por favor, informe um endereço de e-mail válido.");
+      setMessage("Por favor, digite um e-mail válido para validação.");
       soundManager.playLossChime();
       return;
     }
@@ -71,13 +79,13 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
 
       if (data.access === true) {
         setResultState("SUCCESS");
-        setMessage("Acesso VIP Liberado! Bem-vindo ao CandleX AI.");
+        setMessage("Acesso VIP Liberado com Sucesso! Inicializando Terminal CandleX AI...");
         soundManager.playGoalReached();
         try {
           confetti({
-            particleCount: 120,
-            spread: 70,
-            origin: { y: 0.6 },
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.55 },
           });
         } catch {}
 
@@ -97,14 +105,14 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
         setResultState("DENIED");
         setMessage(
           data.message ||
-            "Acesso não liberado. Certifique-se de que se cadastrou pelo link oficial e realizou o primeiro depósito na Hiove."
+            "Seu e-mail não foi localizado com cadastro ativo através do nosso link de indicação ou ainda não possui o primeiro depósito concluído na corretora Hiove."
         );
         soundManager.playLossChime();
       }
     } catch (err: any) {
       console.error("Erro ao validar acesso:", err);
       setResultState("ERROR");
-      setMessage("Erro ao comunicar com o servidor de validação. Verifique sua conexão e tente novamente.");
+      setMessage("Erro de conexão com os servidores de autenticação da Hiove. Tente novamente em instantes.");
       soundManager.playLossChime();
     } finally {
       setLoading(false);
@@ -112,32 +120,70 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 select-none animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#0E121B] border border-[#1E2638] rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col">
-        {/* Glow Header Accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF7A00] via-[#00E676] to-[#FF7A00]" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070B]/90 backdrop-blur-xl p-3 sm:p-5 select-none animate-in fade-in duration-300 overflow-y-auto">
+      {/* Background Cyber Glow & Holographic Chart Overlay */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-[#FF7A00]/15 via-transparent to-emerald-500/10 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 bg-[radial-gradient(#1E2638_1px,transparent_1px)] [background-size:24px_24px] opacity-25" />
+      </div>
 
-        {/* Top bar modal */}
-        <div className="px-6 py-4 border-b border-[#1E2638] flex items-center justify-between bg-[#121622]/90">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF7A00]/20 to-[#00E676]/20 border border-[#FF7A00]/40 flex items-center justify-center shadow-[0_0_15px_rgba(255,122,0,0.2)]">
-              {currentSession?.isAuthorized ? (
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              ) : (
-                <Lock className="w-5 h-5 text-[#FF7A00]" />
-              )}
+      {/* Main Container */}
+      <div className="relative w-full max-w-2xl bg-[#090C12]/95 border border-[#1E2638] rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col my-auto transition-all">
+        {/* Top Glowing Laser Border */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#FF7A00] via-emerald-400 to-[#FF8C00] shadow-[0_0_15px_rgba(255,122,0,0.6)]" />
+
+        {/* Live Market & AI Neural Status Strip */}
+        <div className="bg-[#0C1019] border-b border-[#182030] px-4 py-2 flex items-center justify-between text-[11px] font-mono text-slate-400 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-bold text-emerald-400 tracking-wider text-[10px] sm:text-xs">
+              IA QUANTITATIVA ONLINE • SMC v4.9
+            </span>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-4 text-[10.5px]">
+            <span>
+              ASSERTIVIDADE: <strong className="text-emerald-400 font-bold">89.4%</strong>
+            </span>
+            <span className="text-[#1E2638]">•</span>
+            <span>
+              LATÊNCIA HIOVE: <strong className="text-amber-400 font-bold">12ms</strong>
+            </span>
+            <span className="text-[#1E2638]">•</span>
+            <span className="text-slate-300">ORDER FLOW SINCRONIZADO</span>
+          </div>
+        </div>
+
+        {/* Modal Header */}
+        <div className="px-6 py-5 border-b border-[#182030] bg-[#0E131F]/60 flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            {/* Holographic AI Icon */}
+            <div className="relative group">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1A2333] to-[#0A0E17] border border-[#FF7A00]/50 flex items-center justify-center shadow-[0_0_20px_rgba(255,122,0,0.25)]">
+                <Bot className="w-6 h-6 text-[#FF7A00]" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#090C12] flex items-center justify-center">
+                <Sparkles className="w-2.5 h-2.5 text-slate-950 font-black" />
+              </div>
             </div>
+
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-white tracking-wide">
-                  PORTAL DE ACESSO CANDLEX AI
-                </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#FF7A00]/15 text-[#FF7A00] border border-[#FF7A00]/30 font-bold">
-                  HIOVE VIP
+                <h1 className="text-lg sm:text-xl font-black text-white tracking-wider flex items-center gap-2 font-sans">
+                  <span>CANDLEX</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF8C00] to-amber-300">
+                    AI PRO
+                  </span>
+                </h1>
+                <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-full bg-gradient-to-r from-[#FF7A00]/20 to-amber-500/20 text-[#FF8C00] border border-[#FF7A00]/40 font-black">
+                  VIP HIOVE
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Validação oficial de clientes cadastrados e ativos
+              <p className="text-xs text-slate-400 font-medium">
+                Terminal de Inteligência Artificial para Operações Rápidas na Hiove
               </p>
             </div>
           </div>
@@ -146,43 +192,45 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 text-slate-400 hover:text-white transition-colors cursor-pointer border border-[#1E2638]"
+              title="Fechar Janela"
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        {/* Body */}
-        <div className="p-6 space-y-5">
-          {/* Active Session Info (if already authorized) */}
+        {/* Modal Body */}
+        <div className="p-5 sm:p-7 space-y-6">
+          {/* Active Session Badge (if user is authenticated) */}
           {currentSession?.isAuthorized && resultState === "IDLE" ? (
-            <div className="bg-[#141A26] border border-emerald-500/30 rounded-xl p-4 space-y-3">
+            <div className="bg-[#0D121D] border border-emerald-500/40 rounded-2xl p-5 space-y-4 shadow-lg shadow-emerald-950/20">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  <span className="text-sm font-bold text-white">Sessão Ativa & Habilitada</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white">Sessão VIP Hiove Ativa</h3>
+                    <p className="text-xs text-slate-400">Terminal CandleX AI liberado e operacional</p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  STATUS VIP
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30 font-bold">
+                  AUTORIZADO
                 </span>
               </div>
 
-              <div className="text-xs text-slate-300">
-                E-mail autenticado:{" "}
-                <span className="font-mono text-white font-bold">{currentSession.email}</span>
+              <div className="p-3 bg-[#070A0F] rounded-xl border border-[#182030] flex items-center justify-between text-xs">
+                <span className="text-slate-400">E-mail Vinculado:</span>
+                <span className="font-mono text-emerald-300 font-bold">{currentSession.email}</span>
               </div>
 
-              <div className="text-[11px] text-slate-400">
-                Validado em: {new Date(currentSession.validatedAt).toLocaleString("pt-BR")}
-              </div>
-
-              <div className="flex items-center gap-2 pt-2 border-t border-[#1E2638]">
+              <div className="flex items-center gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => handleValidate()}
                   disabled={loading}
-                  className="flex-1 py-2 px-3 rounded-lg bg-[#1E2638] hover:bg-[#2A364F] text-xs font-bold text-slate-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-[#141A26] hover:bg-[#1E2638] text-xs font-bold text-slate-200 transition-colors flex items-center justify-center gap-2 border border-[#1E2638] cursor-pointer"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                   Revalidar Status
@@ -190,85 +238,116 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="py-2 px-3 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2.5 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  Sair
+                  Desconectar
                 </button>
               </div>
             </div>
           ) : (
             <>
-              {/* Teaser Perks Banner */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="p-2.5 rounded-xl bg-[#121622] border border-[#1E2638] text-center">
-                  <Zap className="w-4 h-4 text-[#FF7A00] mx-auto mb-1" />
-                  <span className="text-[10px] font-bold text-slate-200 block">Sinais M1 & M5</span>
-                  <span className="text-[9px] text-slate-400">Gatilhos Hiove</span>
+              {/* 3 Tech Trader Cards (Confluência, SMC, Filtro Anti-Loss) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="p-3 rounded-2xl bg-gradient-to-b from-[#101624] to-[#0A0D15] border border-[#1E2638] relative overflow-hidden group hover:border-[#FF7A00]/40 transition-all">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Activity className="w-4 h-4 text-[#FF7A00]" />
+                    <span className="text-xs font-black text-white">SMC & Order Flow</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-tight">
+                    Rastreia pegada institucional e rejeição em M1/M5 na Hiove.
+                  </p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#121622] border border-[#1E2638] text-center">
-                  <TrendingUp className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-                  <span className="text-[10px] font-bold text-slate-200 block">IA SMC Neural</span>
-                  <span className="text-[9px] text-slate-400">Order Flow Real</span>
+
+                <div className="p-3 rounded-2xl bg-gradient-to-b from-[#101624] to-[#0A0D15] border border-[#1E2638] relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-black text-white">Assertividade 89%</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-tight">
+                    Confluência quádrupla: RSI, Bollinger, Suportes e Velas de Força.
+                  </p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#121622] border border-[#1E2638] text-center">
-                  <Sparkles className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
-                  <span className="text-[10px] font-bold text-slate-200 block">Vision Scanner</span>
-                  <span className="text-[9px] text-slate-400">Análise de Print</span>
+
+                <div className="p-3 rounded-2xl bg-gradient-to-b from-[#101624] to-[#0A0D15] border border-[#1E2638] relative overflow-hidden group hover:border-cyan-400/40 transition-all">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-black text-white">Gatilhos Hiove</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-tight">
+                    Taxas com tempo exato de expiração e dica de clique de CALL/PUT.
+                  </p>
                 </div>
               </div>
 
-              {/* Requirements Explanatory Card */}
-              <div className="bg-[#121622] border border-[#1E2638] rounded-xl p-3.5 space-y-2">
-                <div className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#FF7A00]" />
-                  Requisitos para Liberação de Acesso:
+              {/* Requirements & Rule Box */}
+              <div className="bg-[#0B0F17] border border-[#1A2336] rounded-2xl p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-200 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#FF7A00]" />
+                    Requisitos de Acesso Exclusivo:
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                    SEM MENSALIDADE
+                  </span>
                 </div>
-                <ul className="text-xs text-slate-400 space-y-1.5 pl-5 list-disc">
-                  <li>
-                    Ter cadastro na corretora <strong className="text-white">Hiove</strong> realizado pelo nosso link de indicação.
-                  </li>
-                  <li>
-                    Já ter realizado pelo menos o <strong className="text-emerald-400">primeiro depósito</strong> na conta da corretora.
-                  </li>
-                </ul>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 pt-1">
+                  <div className="flex items-start gap-2 bg-[#0E131F]/80 p-2.5 rounded-xl border border-[#182030]">
+                    <span className="w-5 h-5 rounded-full bg-[#FF7A00]/20 text-[#FF7A00] font-black flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <span>
+                      Cadastro realizado pelo nosso <strong className="text-white">link oficial</strong> na corretora Hiove.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2 bg-[#0E131F]/80 p-2.5 rounded-xl border border-[#182030]">
+                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <span>
+                      Ter realizado pelo menos o <strong className="text-emerald-400">primeiro depósito</strong> para ativar a conta.
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {/* Form Input */}
+              {/* Form Input for Email */}
               <form onSubmit={handleValidate} className="space-y-3">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
-                    <span>E-mail cadastrado na Hiove</span>
-                    <span className="text-[10px] text-slate-400 lowercase">ex: seu@email.com</span>
+                    <span className="flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-[#FF7A00]" />
+                      Digite seu e-mail cadastrado na corretora Hiove
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">validação instantânea</span>
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
                       required
-                      placeholder="digite seu e-mail da corretora Hiove..."
+                      placeholder="seu.email@exemplo.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
-                      className="w-full bg-[#090C12] border border-[#1E2638] focus:border-[#FF7A00] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner font-mono"
+                      className="w-full bg-[#070A0F] border border-[#1E2638] focus:border-[#FF7A00] rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner font-mono text-center sm:text-left focus:ring-1 focus:ring-[#FF7A00]/40"
                     />
                   </div>
                 </div>
 
-                {/* Submit Action */}
+                {/* Big Unlock Button */}
                 <button
                   type="submit"
                   disabled={loading || !email.trim()}
-                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#FF8C00] via-[#FF7A00] to-[#E65100] hover:from-[#FFA022] hover:to-[#FF6D00] text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(255,122,0,0.35)] transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-4 px-5 rounded-xl bg-gradient-to-r from-[#FF8C00] via-[#FF7A00] to-[#E65100] hover:from-[#FFA022] hover:to-[#FF6D00] text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_30px_rgba(255,122,0,0.4)] transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
                 >
                   {loading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
-                      <span>Validando junto à API Hiove...</span>
+                      <span>CONSULTANDO REGISTRO NA HIOVE API...</span>
                     </>
                   ) : (
                     <>
-                      <span>Verificar Acesso & Entrar</span>
+                      <span>VERIFICAR ACESSO & ENTRAR NO TERMINAL</span>
                       <ArrowRight className="w-4 h-4 text-slate-950" />
                     </>
                   )}
@@ -277,49 +356,57 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
             </>
           )}
 
-          {/* Feedback states */}
+          {/* Feedback: SUCCESS */}
           {resultState === "SUCCESS" && (
-            <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-3 animate-in fade-in">
-              <CheckCircle2 className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+            <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-3.5 animate-in fade-in">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              </div>
               <div>
-                <strong className="block text-white font-bold">{message}</strong>
-                <span>Carregando sua estação de inteligência artificial...</span>
+                <strong className="block text-white font-bold text-sm">{message}</strong>
+                <span className="text-emerald-200/80">
+                  Carregando gráficos de alta precisão e radar de confluências...
+                </span>
               </div>
             </div>
           )}
 
+          {/* Feedback: DENIED */}
           {resultState === "DENIED" && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs space-y-3 animate-in fade-in">
-              <div className="flex items-start gap-2.5">
-                <ShieldAlert className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+            <div className="p-4 sm:p-5 rounded-2xl bg-rose-500/10 border border-rose-500/35 text-rose-300 text-xs space-y-4 animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
+                  <ShieldAlert className="w-5 h-5 text-rose-400" />
+                </div>
                 <div className="space-y-1">
                   <strong className="block text-white font-bold text-sm">
-                    Acesso Não Liberado
+                    Acesso Não Liberado para este E-mail
                   </strong>
-                  <p className="text-slate-300 leading-relaxed">{message}</p>
+                  <p className="text-slate-300 text-[11.5px] leading-relaxed">{message}</p>
                 </div>
               </div>
 
-              {/* Instructions to unlock */}
-              <div className="bg-[#090C12] p-3 rounded-lg border border-rose-500/20 space-y-2">
-                <div className="text-[11px] font-bold text-slate-200">
-                  Como desbloquear o CandleX AI agora:
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              {/* Direct Action Guide on Denied */}
+              <div className="bg-[#070A0F] p-4 rounded-xl border border-rose-500/20 space-y-2.5">
+                <span className="text-[11px] font-bold text-slate-200 block">
+                  Como ter seu acesso liberado imediatamente:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => window.open("https://app.hiove.com/register", "_blank")}
-                    className="py-2 px-3 rounded-lg bg-[#FF7A00] hover:bg-[#FFA022] text-slate-950 font-bold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-all"
+                    onClick={() => window.open(HIOVE_REGISTER_URL, "_blank")}
+                    className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FF8C00] to-[#FF7A00] hover:from-[#FFA022] hover:to-[#FF6D00] text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-[#FF7A00]/20 transition-all"
                   >
                     <span>1. Criar Conta na Hiove</span>
-                    <ExternalLink className="w-3 h-3" />
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </button>
+
                   <button
                     type="button"
                     onClick={() => handleValidate()}
-                    className="py-2 px-3 rounded-lg bg-[#1E2638] hover:bg-[#2A364F] text-slate-200 font-bold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                    className="py-2.5 px-3 rounded-xl bg-[#141A26] hover:bg-[#1E2638] border border-[#1E2638] text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                   >
-                    <RefreshCw className="w-3 h-3 text-emerald-400" />
+                    <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
                     <span>2. Já Depositei, Tentar Novamente</span>
                   </button>
                 </div>
@@ -327,6 +414,7 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
             </div>
           )}
 
+          {/* Feedback: ERROR */}
           {resultState === "ERROR" && (
             <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2.5 animate-in fade-in">
               <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
@@ -334,9 +422,63 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
             </div>
           )}
 
+          {/* DUAL ACTION BUTTONS: CADASTRO NA CORRETORA + WHATSAPP SUPORTE */}
+          <div className="pt-2 border-t border-[#182030] space-y-3">
+            <div className="text-[11px] font-bold text-slate-400 text-center uppercase tracking-wider">
+              Ainda não tem conta ou precisa de suporte?
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Botão de Cadastro na Corretora Hiove */}
+              <button
+                type="button"
+                onClick={() => window.open(HIOVE_REGISTER_URL, "_blank")}
+                className="py-3 px-4 rounded-xl bg-gradient-to-r from-[#141A26] to-[#182233] hover:from-[#1C2538] hover:to-[#223048] border border-[#FF7A00]/50 hover:border-[#FF7A00] text-white font-black text-xs flex items-center justify-between gap-2 transition-all cursor-pointer shadow-sm group"
+                title="Cadastrar-se na corretora oficial Hiove"
+              >
+                <div className="flex items-center gap-2.5 text-left">
+                  <div className="w-8 h-8 rounded-lg bg-[#FF7A00]/20 flex items-center justify-center text-[#FF7A00] font-black group-hover:scale-105 transition-transform">
+                    H
+                  </div>
+                  <div>
+                    <div className="text-white text-xs font-black">CADASTRAR NA HIOVE</div>
+                    <div className="text-[9.5px] text-[#FF8C00] font-mono">Link Oficial VIP</div>
+                  </div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-[#FF7A00]" />
+              </button>
+
+              {/* Botão Oficial WhatsApp Suporte VIP */}
+              <button
+                type="button"
+                onClick={() => window.open(WHATSAPP_URL, "_blank")}
+                className="py-3 px-4 rounded-xl bg-[#0F1C16] hover:bg-[#14261E] border border-emerald-500/40 hover:border-emerald-400 text-white font-black text-xs flex items-center justify-between gap-2 transition-all cursor-pointer shadow-sm group"
+                title={`Falar com Suporte VIP WhatsApp: ${WHATSAPP_PHONE}`}
+              >
+                <div className="flex items-center gap-2.5 text-left">
+                  {/* WhatsApp SVG Icon */}
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <svg
+                      className="w-5 h-5 fill-emerald-400"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 18.06c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31c-.82-1.31-1.26-2.83-1.26-4.38 0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c.02 4.54-3.68 8.23-8.22 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.7-.81-.23-.09-.39-.12-.56.12-.17.25-.64.81-.79.97-.14.17-.29.19-.54.07-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.15.17-.25.25-.42.08-.17.04-.31-.02-.43s-.56-1.34-.76-1.84c-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.84-.86 2.05s.88 2.38 1 2.55c.12.17 1.73 2.65 4.2 3.71.59.25 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.12-.23-.19-.48-.31z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-emerald-400 text-xs font-black">SUPORTE VIP WHATSAPP</div>
+                    <div className="text-[9.5px] text-slate-400 font-mono">{WHATSAPP_PHONE}</div>
+                  </div>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </button>
+            </div>
+          </div>
+
           {/* Footer note */}
-          <div className="text-center text-[10.5px] text-slate-500 pt-2 border-t border-[#1E2638]">
-            Validação automatizada via Hiove Access API • Criptografia de ponta a ponta
+          <div className="text-center text-[10.5px] text-slate-500 pt-1 flex items-center justify-center gap-1.5">
+            <Lock className="w-3 h-3 text-slate-500" />
+            <span>Validação oficial em tempo real via Hiove Access API • Conexão Criptografada SSL</span>
           </div>
         </div>
       </div>
