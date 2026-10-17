@@ -11,6 +11,8 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { AccessSession } from "../types";
+
 interface HioveUnifiedTopBarProps {
   activeTicker: string;
   onSelectTicker: (ticker: string) => void;
@@ -20,6 +22,8 @@ interface HioveUnifiedTopBarProps {
   balance: number;
   onOpenDeposit: () => void;
   onOpenBonus: () => void;
+  userSession?: AccessSession | null;
+  onOpenAccessGate?: () => void;
 }
 
 export const HioveUnifiedTopBar: React.FC<HioveUnifiedTopBarProps> = ({
@@ -31,6 +35,8 @@ export const HioveUnifiedTopBar: React.FC<HioveUnifiedTopBarProps> = ({
   balance,
   onOpenDeposit,
   onOpenBonus,
+  userSession,
+  onOpenAccessGate,
 }) => {
   const [hideBalance, setHideBalance] = useState(true);
 
@@ -167,17 +173,37 @@ export const HioveUnifiedTopBar: React.FC<HioveUnifiedTopBarProps> = ({
           <span>Depositar</span>
         </button>
 
-        {/* User Profile Avatar with SMC TRADER badge */}
-        <div className="flex items-center gap-1.5 cursor-pointer pl-1">
+        {/* User Profile Avatar with Hiove VIP status badge */}
+        <div
+          onClick={onOpenAccessGate}
+          className="flex items-center gap-1.5 cursor-pointer pl-1 hover:opacity-90 transition-opacity"
+          title={
+            userSession?.isAuthorized
+              ? `VIP Hiove Ativo: ${userSession.email} (Clique para gerenciar)`
+              : "Acesso Bloqueado: Clique para validar seu e-mail da Hiove"
+          }
+        >
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#1E293B] to-[#0F172A] border border-[#334155] flex items-center justify-center relative shadow-sm">
             <User className="w-4 h-4 text-slate-300" />
-            <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0E121B]" />
+            <div
+              className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#0E121B] ${
+                userSession?.isAuthorized ? "bg-emerald-500" : "bg-[#FF7A00] animate-pulse"
+              }`}
+            />
           </div>
           <div className="hidden sm:block">
-            <div className="text-[10px] font-black text-emerald-400 leading-none">
-              SMC TRADER
+            <div
+              className={`text-[10px] font-black leading-none ${
+                userSession?.isAuthorized ? "text-emerald-400" : "text-[#FF7A00]"
+              }`}
+            >
+              {userSession?.isAuthorized
+                ? userSession.email.split("@")[0].toUpperCase()
+                : "VALIDAR CONTA"}
             </div>
-            <div className="text-[8.5px] text-slate-400 font-mono">VIP PRO</div>
+            <div className="text-[8.5px] text-slate-400 font-mono">
+              {userSession?.isAuthorized ? "VIP HIOVE" : "DESCONECTADO"}
+            </div>
           </div>
         </div>
       </div>

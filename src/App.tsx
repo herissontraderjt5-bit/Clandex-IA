@@ -14,6 +14,8 @@ import { AiChatDrawer } from "./components/AiChatDrawer";
 import { AutoTraderModal } from "./components/AutoTraderModal";
 import { AiNeuralScannerOverlay } from "./components/AiNeuralScannerOverlay";
 import { CenterSignalOverlay } from "./components/CenterSignalOverlay";
+import { HioveUnifiedTopBar } from "./components/HioveUnifiedTopBar";
+import { AccessGateModal } from "./components/AccessGateModal";
 import {
   Candle,
   TechnicalIndicators,
@@ -23,6 +25,7 @@ import {
   AutoTraderConfig,
   AutoTraderSession,
   AutoTradeLogItem,
+  AccessSession,
 } from "./types";
 import { calculateAllIndicators } from "./utils/technicalIndicators";
 import { soundManager } from "./utils/soundEffects";
@@ -104,6 +107,44 @@ export default function App() {
   const [isVisionOpen, setIsVisionOpen] = useState<boolean>(false);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [isAutoTraderOpen, setIsAutoTraderOpen] = useState<boolean>(false);
+
+  // Hiove Access Validation Session
+  const [accessSession, setAccessSession] = useState<AccessSession | null>(() => {
+    try {
+      const saved = localStorage.getItem("candlex_access_session");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.isAuthorized && parsed.email) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  });
+
+  const [isAccessGateOpen, setIsAccessGateOpen] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("candlex_access_session");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.isAuthorized && parsed.email) {
+          return false;
+        }
+      }
+    } catch {}
+    return true;
+  });
+
+  const handleAccessGranted = (session: AccessSession) => {
+    setAccessSession(session);
+    setIsAccessGateOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("candlex_access_session");
+    setAccessSession(null);
+    setIsAccessGateOpen(true);
+  };
 
   // Auto Trader Config & Session
   const [autoTraderConfig, setAutoTraderConfig] = useState<AutoTraderConfig>(() => {
@@ -577,6 +618,20 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0B0E14] text-slate-100 overflow-hidden font-sans select-none">
+      {/* Unified Hiove + CandleX Top Bar with live tabs, balance & VIP user status */}
+      <HioveUnifiedTopBar
+        activeTicker={activeTicker}
+        onSelectTicker={setActiveTicker}
+        openTabs={openTabs}
+        onCloseTab={handleCloseTab}
+        onAddTab={handleAddTab}
+        balance={bankrollConfig.currentBalance}
+        onOpenDeposit={() => setIsDepositOpen(true)}
+        onOpenBonus={() => setIsDailyBonusOpen(true)}
+        userSession={accessSession}
+        onOpenAccessGate={() => setIsAccessGateOpen(true)}
+      />
+
       {/* Main Trading Workstation */}
       <div className="flex-1 flex w-full overflow-hidden min-h-0">
         {/* 1. Left Neural Analyzer Sidebar */}
@@ -817,6 +872,16 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Access Gate Modal (Hiove VIP Access Check) */}
+      <AccessGateModal
+        isOpen={isAccessGateOpen || !accessSession?.isAuthorized}
+        currentSession={accessSession}
+        onAccessGranted={handleAccessGranted}
+        onLogout={handleLogout}
+        canClose={Boolean(accessSession?.isAuthorized)}
+        onClose={() => setIsAccessGateOpen(false)}
+      />
     </div>
   );
 }

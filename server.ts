@@ -26,6 +26,61 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", app: "CandleX AI", timestamp: new Date().toISOString() });
 });
 
+// Hiove Access Validation Key & Engine
+const HIOVE_ACCESS_KEY =
+  process.env.HIOVE_ACCESS_KEY ||
+  process.env.HIOVE_KEY ||
+  "";
+
+async function checkHioveAccess(email: string): Promise<{ access: boolean; error?: string }> {
+  try {
+    const res = await fetch("https://access.hiove.io/api/v1/access-check", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${HIOVE_ACCESS_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[Hiove Access Check] HTTP error: ${res.status}`, errorText);
+      return { access: false, error: `Hiove API status ${res.status}` };
+    }
+
+    const data = (await res.json()) as { access?: boolean };
+    return { access: Boolean(data.access) };
+  } catch (err: any) {
+    console.error("[Hiove Access Check] Exception:", err);
+    return { access: false, error: err.message || "Erro de conexão com a Hiove API" };
+  }
+}
+
+// Access check endpoint for client gatekeeper
+app.post("/api/auth/access-check", async (req, res) => {
+  const { email } = req.body || {};
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({
+      success: false,
+      access: false,
+      message: "Por favor, informe um endereço de e-mail válido.",
+    });
+  }
+
+  const result = await checkHioveAccess(email);
+  return res.json({
+    success: true,
+    access: result.access,
+    email: email.trim().toLowerCase(),
+    message: result.access
+      ? "Acesso VIP liberado com sucesso!"
+      : "Acesso não liberado. Certifique-se de que se cadastrou pelo link oficial e concluiu o primeiro depósito na Hiove.",
+    error: result.error,
+  });
+});
+
 // Fetch real-time crypto candles with multi-source resilient endpoints
 async function fetchCandlesFromSources(ticker: string, interval: string, limit: number) {
   const sources = [

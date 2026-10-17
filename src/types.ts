@@ -142,3 +142,9 @@ export type ActiveWindowId =
   | "multi";
 
 export type MultiLayoutMode = "split-50" | "broker-wide" | "ai-wide" | "tri-pane" | "quad-grid";
+
+export interface AccessSession {
+  email: string;
+  isAuthorized: boolean;
+  validatedAt: number;
+}
