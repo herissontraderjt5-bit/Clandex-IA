@@ -9,6 +9,7 @@ import {
   User,
   ChevronDown,
   Sparkles,
+  Key,
 } from "lucide-react";
 
 import { AccessSession } from "../types";
@@ -24,6 +25,7 @@ interface HioveUnifiedTopBarProps {
   onOpenBonus: () => void;
   userSession?: AccessSession | null;
   onOpenAccessGate?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export const HioveUnifiedTopBar: React.FC<HioveUnifiedTopBarProps> = ({
@@ -37,6 +39,7 @@ export const HioveUnifiedTopBar: React.FC<HioveUnifiedTopBarProps> = ({
   onOpenBonus,
   userSession,
   onOpenAccessGate,
+  onOpenAdmin,
 }) => {
   const [hideBalance, setHideBalance] = useState(true);
 
@@ -173,12 +176,27 @@ export const HioveUnifiedTopBar: React.FC<HioveUnifiedTopBarProps> = ({
           <span>Depositar</span>
         </button>
 
-        {/* User Profile Avatar with Hiove VIP status badge */}
+        {/* Admin Direct Button (Visible only to Admin) */}
+        {userSession?.isAdmin && (
+          <button
+            type="button"
+            onClick={onOpenAdmin}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold text-xs transition-colors cursor-pointer"
+            title="Abrir Painel Administrativo de Clientes"
+          >
+            <Key className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Painel Admin</span>
+          </button>
+        )}
+
+        {/* User Profile Avatar with Hiove VIP / Admin status badge */}
         <div
-          onClick={onOpenAccessGate}
+          onClick={userSession?.isAdmin ? onOpenAdmin : onOpenAccessGate}
           className="flex items-center gap-1.5 cursor-pointer pl-1 hover:opacity-90 transition-opacity"
           title={
-            userSession?.isAuthorized
+            userSession?.isAdmin
+              ? `Admin Master: ${userSession.email} (Clique para abrir o painel)`
+              : userSession?.isAuthorized
               ? `VIP Hiove Ativo: ${userSession.email} (Clique para gerenciar)`
               : "Acesso Bloqueado: Clique para validar seu e-mail da Hiove"
           }
@@ -187,22 +205,36 @@ export const HioveUnifiedTopBar: React.FC<HioveUnifiedTopBarProps> = ({
             <User className="w-4 h-4 text-slate-300" />
             <div
               className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#0E121B] ${
-                userSession?.isAuthorized ? "bg-emerald-500" : "bg-[#FF7A00] animate-pulse"
+                userSession?.isAdmin
+                  ? "bg-amber-400"
+                  : userSession?.isAuthorized
+                  ? "bg-emerald-500"
+                  : "bg-[#FF7A00] animate-pulse"
               }`}
             />
           </div>
           <div className="hidden sm:block">
             <div
               className={`text-[10px] font-black leading-none ${
-                userSession?.isAuthorized ? "text-emerald-400" : "text-[#FF7A00]"
+                userSession?.isAdmin
+                  ? "text-amber-300"
+                  : userSession?.isAuthorized
+                  ? "text-emerald-400"
+                  : "text-[#FF7A00]"
               }`}
             >
-              {userSession?.isAuthorized
+              {userSession?.isAdmin
+                ? "ADMIN MASTER"
+                : userSession?.isAuthorized
                 ? userSession.email.split("@")[0].toUpperCase()
                 : "VALIDAR CONTA"}
             </div>
             <div className="text-[8.5px] text-slate-400 font-mono">
-              {userSession?.isAuthorized ? "VIP HIOVE" : "DESCONECTADO"}
+              {userSession?.isAdmin
+                ? "GERENCIADOR"
+                : userSession?.isAuthorized
+                ? "VIP HIOVE"
+                : "DESCONECTADO"}
             </div>
           </div>
         </div>

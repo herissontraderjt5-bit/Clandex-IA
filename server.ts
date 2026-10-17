@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
@@ -58,7 +59,48 @@ async function checkHioveAccess(email: string): Promise<{ access: boolean; error
   }
 }
 
-// Access check endpoint for client gatekeeper
+// Master Admin Email
+const ADMIN_EMAIL = "herisson.trader.jt5@gmail.com";
+
+// Client Storage Management (Fora da lógica da Hiove)
+const CLIENTS_FILE = path.join(process.cwd(), "data", "clients.json");
+
+interface ClientStorageRecord {
+  email: string;
+  firstLoginAt: number;
+  lastLoginAt: number;
+  expiresAt: number | null; // null = Lifetime / Vitalício
+  status: "ACTIVE" | "EXPIRED" | "BLOCKED";
+  registeredVia: "HIOVE" | "ADMIN_MANUAL" | "ADMIN_MASTER";
+  notes?: string;
+}
+
+function loadClients(): ClientStorageRecord[] {
+  try {
+    if (fs.existsSync(CLIENTS_FILE)) {
+      const raw = fs.readFileSync(CLIENTS_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.error("Erro ao ler data/clients.json:", err);
+  }
+  return [];
+}
+
+function saveClients(clients: ClientStorageRecord[]) {
+  try {
+    const dir = path.dirname(CLIENTS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(CLIENTS_FILE, JSON.stringify(clients, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Erro ao salvar data/clients.json:", err);
+  }
+}
+
+// Access check endpoint for client gatekeeper & Admin Master
 app.post("/api/auth/access-check", async (req, res) => {
   const { email } = req.body || {};
   if (!email || typeof email !== "string" || !email.includes("@")) {
@@ -69,16 +111,172 @@ app.post("/api/auth/access-check", async (req, res) => {
     });
   }
 
-  const result = await checkHioveAccess(email);
+  const cleanEmail = email.trim().toLowerCase();
+  const now = Date.now();
+
+  // 1. MASTER ADMIN BYPASS (Sem necessidade de checagem na Hiove):
+  if (cleanEmail === ADMIN_EMAIL.toLowerCase()) {
+    const clients = loadClients();
+    let adminRecord = clients.find((c) => c.email.toLowerCase() === cleanEmail);
+    if (!adminRecord) {
+      adminRecord = {
+        email: cleanEmail,
+        firstLoginAt: now,
+        lastLoginAt: now,
+        expiresAt: null,
+        status: "ACTIVE",
+        registeredVia: "ADMIN_MASTER",
+        notes: "Administrador Master do Sistema",
+      };
+      clients.push(adminRecord);
+    } else {
+      adminRecord.lastLoginAt = now;
+      adminRecord.status = "ACTIVE";
+      adminRecord.expiresAt = null;
+    }
+    saveClients(clients);
+
+    return res.json({
+      success: true,
+      access: true,
+      isAdmin: true,
+      email: cleanEmail,
+      expiresAt: null,
+      message: "Acesso de Administrador Master liberado com sucesso!",
+    });
+  }
+
+  // 2. CHECK LOCAL REGISTRY FIRST (Data de expiração gerenciada pelo Admin, fora da lógica Hiove):
+  const clients = loadClients();
+  const client = clients.find((c) => c.email.toLowerCase() === cleanEmail);
+
+  if (client) {
+    // Se o cliente foi bloqueado manualmente pelo admin
+    if (client.status === "BLOCKED") {
+      return res.json({
+        success: true,
+        access: false,
+        email: cleanEmail,
+        message: "Acesso bloqueado pela administração do CandleX AI. Entre em contato com o suporte.",
+      });
+    }
+
+    // Se o período de acesso expirou
+    if (client.expiresAt && client.expiresAt < now) {
+      return res.json({
+        success: true,
+        access: false,
+        isExpired: true,
+        email: cleanEmail,
+        expiresAt: client.expiresAt,
+        message: `Seu período de acesso expirou em ${new Date(client.expiresAt).toLocaleDateString("pt-BR")}. Entre em contato com o suporte para renovar.`,
+      });
+    }
+
+    // Cliente ativo e dentro da validade
+    client.lastLoginAt = now;
+    saveClients(clients);
+
+    return res.json({
+      success: true,
+      access: true,
+      isAdmin: false,
+      email: cleanEmail,
+      expiresAt: client.expiresAt,
+      message: "Acesso VIP liberado com sucesso!",
+    });
+  }
+
+  // 3. SE NÃO ENCONTRADO NO BANCO LOCAL, VALIDA VIA HIOVE API:
+  const hioveResult = await checkHioveAccess(cleanEmail);
+
+  if (hioveResult.access) {
+    // Registra o cliente aprovado na Hiove com validade inicial de 30 dias (editável pelo admin)
+    const defaultDurationDays = 30;
+    const expiresAt = now + defaultDurationDays * 24 * 60 * 60 * 1000;
+
+    clients.push({
+      email: cleanEmail,
+      firstLoginAt: now,
+      lastLoginAt: now,
+      expiresAt,
+      status: "ACTIVE",
+      registeredVia: "HIOVE",
+      notes: "Aprovado via Hiove Access API (cadastro + depósito)",
+    });
+    saveClients(clients);
+
+    return res.json({
+      success: true,
+      access: true,
+      isAdmin: false,
+      email: cleanEmail,
+      expiresAt,
+      message: "Acesso VIP liberado com sucesso via Hiove!",
+    });
+  }
+
   return res.json({
     success: true,
-    access: result.access,
-    email: email.trim().toLowerCase(),
-    message: result.access
-      ? "Acesso VIP liberado com sucesso!"
-      : "Acesso não liberado. Certifique-se de que se cadastrou pelo link oficial e concluiu o primeiro depósito na Hiove.",
-    error: result.error,
+    access: false,
+    email: cleanEmail,
+    message: "Acesso não liberado. Certifique-se de que se cadastrou pelo link oficial e concluiu o primeiro depósito na Hiove.",
+    error: hioveResult.error,
   });
+});
+
+// Admin API Endpoints
+app.get("/api/admin/clients", (_req, res) => {
+  const clients = loadClients();
+  res.json({ success: true, clients });
+});
+
+app.post("/api/admin/clients", (req, res) => {
+  const { email, expiresAt, status = "ACTIVE", notes = "" } = req.body || {};
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ success: false, message: "E-mail inválido." });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const clients = loadClients();
+  const now = Date.now();
+
+  const existingIndex = clients.findIndex((c) => c.email.toLowerCase() === cleanEmail);
+  if (existingIndex >= 0) {
+    clients[existingIndex] = {
+      ...clients[existingIndex],
+      expiresAt: expiresAt !== undefined ? expiresAt : clients[existingIndex].expiresAt,
+      status: status || clients[existingIndex].status,
+      notes: notes !== undefined ? notes : clients[existingIndex].notes,
+      lastLoginAt: clients[existingIndex].lastLoginAt || now,
+    };
+  } else {
+    clients.push({
+      email: cleanEmail,
+      firstLoginAt: now,
+      lastLoginAt: now,
+      expiresAt: expiresAt !== undefined ? expiresAt : null,
+      status: status || "ACTIVE",
+      registeredVia: "ADMIN_MANUAL",
+      notes: notes || "Cadastrado manualmente pelo Administrador",
+    });
+  }
+
+  saveClients(clients);
+  return res.json({ success: true, clients });
+});
+
+app.delete("/api/admin/clients/:email", (req, res) => {
+  const targetEmail = (req.params.email || "").trim().toLowerCase();
+  if (targetEmail === ADMIN_EMAIL.toLowerCase()) {
+    return res.status(400).json({ success: false, message: "Não é possível excluir o Administrador Master." });
+  }
+
+  const clients = loadClients();
+  const filtered = clients.filter((c) => c.email.toLowerCase() !== targetEmail);
+  saveClients(filtered);
+
+  return res.json({ success: true, clients: filtered });
 });
 
 // Fetch real-time crypto candles with multi-source resilient endpoints

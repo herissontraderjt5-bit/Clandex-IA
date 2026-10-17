@@ -146,5 +146,17 @@ export type MultiLayoutMode = "split-50" | "broker-wide" | "ai-wide" | "tri-pane
 export interface AccessSession {
   email: string;
   isAuthorized: boolean;
+  isAdmin?: boolean;
+  expiresAt?: number | null;
   validatedAt: number;
+}
+
+export interface ClientRecord {
+  email: string;
+  firstLoginAt: number;
+  lastLoginAt: number;
+  expiresAt: number | null; // null = Lifetime / Vitalício
+  status: "ACTIVE" | "EXPIRED" | "BLOCKED";
+  registeredVia: "HIOVE" | "ADMIN_MANUAL" | "ADMIN_MASTER";
+  notes?: string;
 }

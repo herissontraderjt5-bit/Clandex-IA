@@ -13,6 +13,7 @@ import {
   Sparkles,
   X,
   Bot,
+  Key,
 } from "lucide-react";
 import { AccessSession } from "../types";
 import { soundManager } from "../utils/soundEffects";
@@ -25,6 +26,7 @@ interface AccessGateModalProps {
   onLogout: () => void;
   canClose?: boolean;
   onClose?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 const HIOVE_REGISTER_URL = "https://hiove.io/gSBstV";
@@ -38,9 +40,11 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
   onLogout,
   canClose = false,
   onClose,
+  onOpenAdmin,
 }) => {
   const [email, setEmail] = useState<string>(currentSession?.email || "");
   const [loading, setLoading] = useState<boolean>(false);
+  const [logoClicks, setLogoClicks] = useState<number>(0);
   const [resultState, setResultState] = useState<"IDLE" | "SUCCESS" | "DENIED" | "ERROR">("IDLE");
   const [message, setMessage] = useState<string>("");
 
@@ -87,15 +91,27 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
         const newSession: AccessSession = {
           email: cleanEmail,
           isAuthorized: true,
+          isAdmin: Boolean(data.isAdmin),
+          expiresAt: data.expiresAt !== undefined ? data.expiresAt : null,
           validatedAt: Date.now(),
         };
 
+        if (data.isAdmin) {
+          localStorage.setItem("candlex_admin_authenticated", "true");
+        }
+
         localStorage.setItem("candlex_access_session", JSON.stringify(newSession));
+
+        setMessage(
+          data.isAdmin
+            ? "Acesso de Administrador Master Liberado! Inicializando..."
+            : "Acesso VIP Liberado com Sucesso! Inicializando Terminal CandleX AI..."
+        );
 
         setTimeout(() => {
           onAccessGranted(newSession);
           if (onClose) onClose();
-        }, 1500);
+        }, 1200);
       } else {
         setResultState("DENIED");
         setMessage(
@@ -141,20 +157,23 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
             </div>
 
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-black text-white tracking-wider flex items-center gap-2 font-sans">
-                  <span>CANDLEX</span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF8C00] to-amber-300">
-                    AI PRO
-                  </span>
-                </h1>
-                <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-full bg-gradient-to-r from-[#FF7A00]/20 to-amber-500/20 text-[#FF8C00] border border-[#FF7A00]/40 font-black">
-                  VIP HIOVE
+              <h1
+                onClick={() => {
+                  const next = logoClicks + 1;
+                  setLogoClicks(next);
+                  if (next >= 3) {
+                    setLogoClicks(0);
+                    if (onOpenAdmin) onOpenAdmin();
+                  }
+                }}
+                className="text-xl sm:text-2xl font-black text-white tracking-wider flex items-center gap-2 font-sans cursor-pointer select-none"
+                title="CandleX AI Pro"
+              >
+                <span>CANDLEX</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF8C00] to-amber-300">
+                  AI PRO
                 </span>
-              </div>
-              <p className="text-xs text-slate-400 font-medium">
-                Terminal de Inteligência Artificial para Operações Rápidas na Hiove
-              </p>
+              </h1>
             </div>
           </div>
 
@@ -409,10 +428,22 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
             </div>
           </div>
 
-          {/* Footer note */}
-          <div className="text-center text-[10.5px] text-slate-500 pt-1 flex items-center justify-center gap-1.5">
-            <Lock className="w-3 h-3 text-slate-500" />
-            <span>Validação oficial em tempo real via Hiove Access API • Conexão Criptografada SSL</span>
+          {/* Footer note & Hidden Admin Button */}
+          <div className="pt-1 flex items-center justify-between text-[10.5px] text-slate-500">
+            <div className="flex items-center gap-1.5 mx-auto pl-6">
+              <Lock className="w-3 h-3 text-slate-500" />
+              <span>Validação oficial em tempo real via Hiove Access API • Conexão Criptografada SSL</span>
+            </div>
+
+            {/* Botão Oculto / Discreto para Painel Admin */}
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              className="opacity-15 hover:opacity-100 transition-opacity p-1 text-slate-500 hover:text-[#FF7A00] cursor-pointer"
+              title="Acesso Administrativo Master"
+            >
+              <Key className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>

@@ -16,6 +16,7 @@ import { AiNeuralScannerOverlay } from "./components/AiNeuralScannerOverlay";
 import { CenterSignalOverlay } from "./components/CenterSignalOverlay";
 import { HioveUnifiedTopBar } from "./components/HioveUnifiedTopBar";
 import { AccessGateModal } from "./components/AccessGateModal";
+import { AdminPanelModal } from "./components/AdminPanelModal";
 import {
   Candle,
   TechnicalIndicators,
@@ -107,6 +108,7 @@ export default function App() {
   const [isVisionOpen, setIsVisionOpen] = useState<boolean>(false);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [isAutoTraderOpen, setIsAutoTraderOpen] = useState<boolean>(false);
+  const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
 
   // Hiove Access Validation Session
   const [accessSession, setAccessSession] = useState<AccessSession | null>(() => {
@@ -630,6 +632,7 @@ export default function App() {
         onOpenBonus={() => setIsDailyBonusOpen(true)}
         userSession={accessSession}
         onOpenAccessGate={() => setIsAccessGateOpen(true)}
+        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       {/* Main Trading Workstation */}
@@ -881,6 +884,14 @@ export default function App() {
         onLogout={handleLogout}
         canClose={Boolean(accessSession?.isAuthorized)}
         onClose={() => setIsAccessGateOpen(false)}
+        onOpenAdmin={() => setIsAdminOpen(true)}
+      />
+
+      {/* Admin Master Panel Modal */}
+      <AdminPanelModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        onAdminLoginDirect={handleAccessGranted}
       />
     </div>
   );
