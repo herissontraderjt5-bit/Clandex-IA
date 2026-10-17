@@ -11,13 +11,8 @@ import {
   RefreshCw,
   LogOut,
   Sparkles,
-  Zap,
-  TrendingUp,
   X,
   Bot,
-  Cpu,
-  Activity,
-  Layers,
 } from "lucide-react";
 import { AccessSession } from "../types";
 import { soundManager } from "../utils/soundEffects";
@@ -128,34 +123,9 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
       </div>
 
       {/* Main Container */}
-      <div className="relative w-full max-w-2xl bg-[#090C12]/95 border border-[#1E2638] rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col my-auto transition-all">
+      <div className="relative w-full max-w-lg bg-[#090C12]/95 border border-[#1E2638] rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col my-auto transition-all">
         {/* Top Glowing Laser Border */}
         <div className="h-1.5 w-full bg-gradient-to-r from-[#FF7A00] via-emerald-400 to-[#FF8C00] shadow-[0_0_15px_rgba(255,122,0,0.6)]" />
-
-        {/* Live Market & AI Neural Status Strip */}
-        <div className="bg-[#0C1019] border-b border-[#182030] px-4 py-2 flex items-center justify-between text-[11px] font-mono text-slate-400 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="font-bold text-emerald-400 tracking-wider text-[10px] sm:text-xs">
-              IA QUANTITATIVA ONLINE • SMC v4.9
-            </span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-4 text-[10.5px]">
-            <span>
-              ASSERTIVIDADE: <strong className="text-emerald-400 font-bold">89.4%</strong>
-            </span>
-            <span className="text-[#1E2638]">•</span>
-            <span>
-              LATÊNCIA HIOVE: <strong className="text-amber-400 font-bold">12ms</strong>
-            </span>
-            <span className="text-[#1E2638]">•</span>
-            <span className="text-slate-300">ORDER FLOW SINCRONIZADO</span>
-          </div>
-        </div>
 
         {/* Modal Header */}
         <div className="px-6 py-5 border-b border-[#182030] bg-[#0E131F]/60 flex items-center justify-between">
@@ -247,48 +217,12 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
             </div>
           ) : (
             <>
-              {/* 3 Tech Trader Cards (Confluência, SMC, Filtro Anti-Loss) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 rounded-2xl bg-gradient-to-b from-[#101624] to-[#0A0D15] border border-[#1E2638] relative overflow-hidden group hover:border-[#FF7A00]/40 transition-all">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Activity className="w-4 h-4 text-[#FF7A00]" />
-                    <span className="text-xs font-black text-white">SMC & Order Flow</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-tight">
-                    Rastreia pegada institucional e rejeição em M1/M5 na Hiove.
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-gradient-to-b from-[#101624] to-[#0A0D15] border border-[#1E2638] relative overflow-hidden group hover:border-emerald-500/40 transition-all">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs font-black text-white">Assertividade 89%</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-tight">
-                    Confluência quádrupla: RSI, Bollinger, Suportes e Velas de Força.
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-gradient-to-b from-[#101624] to-[#0A0D15] border border-[#1E2638] relative overflow-hidden group hover:border-cyan-400/40 transition-all">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs font-black text-white">Gatilhos Hiove</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-tight">
-                    Taxas com tempo exato de expiração e dica de clique de CALL/PUT.
-                  </p>
-                </div>
-              </div>
-
               {/* Requirements & Rule Box */}
               <div className="bg-[#0B0F17] border border-[#1A2336] rounded-2xl p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#FF7A00]" />
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#FF7A00]" />
+                  <span className="text-xs font-bold text-slate-200">
                     Requisitos de Acesso Exclusivo:
-                  </span>
-                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
-                    SEM MENSALIDADE
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 pt-1">
