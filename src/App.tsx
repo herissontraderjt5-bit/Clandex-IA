@@ -14,7 +14,6 @@ import { AiChatDrawer } from "./components/AiChatDrawer";
 import { AutoTraderModal } from "./components/AutoTraderModal";
 import { AiNeuralScannerOverlay } from "./components/AiNeuralScannerOverlay";
 import { CenterSignalOverlay } from "./components/CenterSignalOverlay";
-import { HioveUnifiedTopBar } from "./components/HioveUnifiedTopBar";
 import { AccessGateModal } from "./components/AccessGateModal";
 import { AdminPanelModal } from "./components/AdminPanelModal";
 import {
@@ -620,21 +619,6 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0B0E14] text-slate-100 overflow-hidden font-sans select-none">
-      {/* Unified Hiove + CandleX Top Bar with live tabs, balance & VIP user status */}
-      <HioveUnifiedTopBar
-        activeTicker={activeTicker}
-        onSelectTicker={setActiveTicker}
-        openTabs={openTabs}
-        onCloseTab={handleCloseTab}
-        onAddTab={handleAddTab}
-        balance={bankrollConfig.currentBalance}
-        onOpenDeposit={() => setIsDepositOpen(true)}
-        onOpenBonus={() => setIsDailyBonusOpen(true)}
-        userSession={accessSession}
-        onOpenAccessGate={() => setIsAccessGateOpen(true)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-      />
-
       {/* Main Trading Workstation */}
       <div className="flex-1 flex w-full overflow-hidden min-h-0">
         {/* 1. Left Neural Analyzer Sidebar */}
