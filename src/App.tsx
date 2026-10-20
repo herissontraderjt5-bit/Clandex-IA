@@ -689,27 +689,6 @@ export default function App() {
                   <span>TradingView Pro</span>
                 </button>
               </div>
-
-              {/* Trader Auto Quick Launch Pill */}
-              <button
-                type="button"
-                onClick={() => setIsAutoTraderOpen(true)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
-                  autoTraderConfig.enabled
-                    ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]"
-                    : "bg-[#141A26] text-slate-300 hover:text-white border-[#1E2638] hover:border-[#FF7A00]/40"
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    autoTraderConfig.enabled ? "bg-emerald-400 animate-ping" : "bg-[#FF7A00]"
-                  }`}
-                />
-                <span>Trader Auto IA</span>
-                <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-black/40 text-amber-300">
-                  {autoTraderConfig.managementMode}
-                </span>
-              </button>
             </div>
 
             <div className="flex items-center gap-2 text-xs">
