@@ -142,6 +142,20 @@ export async function saveClientToDatabase(client: ClientRecord): Promise<Client
     console.warn("[Supabase] Falha de conexão ao salvar cliente:", err);
   }
 
+  // 3. Sincroniza também com o servidor local (data/clients.json) se disponível
+  try {
+    fetch("/api/admin/clients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: updatedClient.email,
+        expiresAt: updatedClient.expiresAt,
+        status: updatedClient.status,
+        notes: updatedClient.notes,
+      }),
+    }).catch(() => {});
+  } catch {}
+
   return updatedList;
 }
 
@@ -173,7 +187,115 @@ export async function deleteClientFromDatabase(email: string): Promise<ClientRec
     console.warn("[Supabase] Falha ao deletar cliente do banco:", err);
   }
 
+  // Sincroniza exclusão no servidor local se disponível
+  try {
+    fetch(`/api/admin/clients/${encodeURIComponent(cleanEmail)}`, {
+      method: "DELETE",
+    }).catch(() => {});
+  } catch {}
+
   return filtered;
+}
+
+/**
+ * Define a quantidade exata de dias de acesso a partir de agora (ou null para Vitalício)
+ */
+export async function setClientDays(
+  email: string,
+  days: number | null,
+  customNotes?: string
+): Promise<ClientRecord[]> {
+  const cleanEmail = email.toLowerCase().trim();
+  const clients = await getClientsFromDatabase();
+  const existing = clients.find((c) => c.email.toLowerCase() === cleanEmail);
+
+  const expiresAt = days === null ? null : Date.now() + Math.max(0, days) * 24 * 60 * 60 * 1000;
+  const status: "ACTIVE" | "EXPIRED" = days === 0 ? "EXPIRED" : "ACTIVE";
+
+  if (existing) {
+    return saveClientToDatabase({
+      ...existing,
+      expiresAt,
+      status,
+      notes: customNotes !== undefined ? customNotes : existing.notes,
+    });
+  } else {
+    const now = Date.now();
+    return saveClientToDatabase({
+      email: cleanEmail,
+      firstLoginAt: now,
+      lastLoginAt: now,
+      expiresAt,
+      status,
+      registeredVia: "ADMIN_MANUAL",
+      notes: customNotes || "Cadastrado manualmente pelo Administrador",
+    });
+  }
+}
+
+/**
+ * Soma ou subtrai dias do prazo atual do membro
+ */
+export async function addClientDays(
+  email: string,
+  daysToAdd: number
+): Promise<ClientRecord[]> {
+  const cleanEmail = email.toLowerCase().trim();
+  const clients = await getClientsFromDatabase();
+  const existing = clients.find((c) => c.email.toLowerCase() === cleanEmail);
+  if (!existing) {
+    return setClientDays(cleanEmail, daysToAdd);
+  }
+
+  const now = Date.now();
+  // Se o membro já tem validade futura, adiciona sobre ela; se expirou ou é vitalício, baseia em agora
+  const baseTimestamp =
+    existing.expiresAt && existing.expiresAt > now ? existing.expiresAt : now;
+
+  const newExpiresAt = Math.max(now, baseTimestamp + daysToAdd * 24 * 60 * 60 * 1000);
+
+  return saveClientToDatabase({
+    ...existing,
+    expiresAt: newExpiresAt,
+    status: "ACTIVE",
+  });
+}
+
+/**
+ * Define uma data específica de expiração
+ */
+export async function setClientExpirationDate(
+  email: string,
+  targetTimestamp: number | null
+): Promise<ClientRecord[]> {
+  const cleanEmail = email.toLowerCase().trim();
+  const clients = await getClientsFromDatabase();
+  const existing = clients.find((c) => c.email.toLowerCase() === cleanEmail);
+  if (!existing) return clients;
+
+  return saveClientToDatabase({
+    ...existing,
+    expiresAt: targetTimestamp,
+    status: targetTimestamp && targetTimestamp < Date.now() ? "EXPIRED" : "ACTIVE",
+  });
+}
+
+/**
+ * Alterna status do membro entre ACTIVE e BLOCKED
+ */
+export async function toggleClientStatus(
+  email: string
+): Promise<ClientRecord[]> {
+  const cleanEmail = email.toLowerCase().trim();
+  const clients = await getClientsFromDatabase();
+  const existing = clients.find((c) => c.email.toLowerCase() === cleanEmail);
+  if (!existing) return clients;
+
+  const nextStatus = existing.status === "ACTIVE" ? "BLOCKED" : "ACTIVE";
+  return saveClientToDatabase({
+    ...existing,
+    status: nextStatus,
+  });
 }
 
 /**

@@ -16,6 +16,7 @@ import { AiNeuralScannerOverlay } from "./components/AiNeuralScannerOverlay";
 import { CenterSignalOverlay } from "./components/CenterSignalOverlay";
 import { AccessGateModal } from "./components/AccessGateModal";
 import { AdminPanelModal } from "./components/AdminPanelModal";
+import { LogOut, Key, ShieldCheck } from "lucide-react";
 import {
   Candle,
   TechnicalIndicators,
@@ -145,9 +146,23 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("candlex_access_session");
+    localStorage.removeItem("candlex_admin_authenticated");
     setAccessSession(null);
+    setIsAdminOpen(false);
     setIsAccessGateOpen(true);
   };
+
+  // Observa validade da sessão para membros convencionais
+  useEffect(() => {
+    if (!accessSession?.isAuthorized || accessSession?.isAdmin) return;
+    if (accessSession.expiresAt && accessSession.expiresAt <= Date.now()) {
+      soundManager.playLossChime();
+      alert(
+        "Seu período de acesso ao CandleX AI expirou. Entre em contato com a administração para renovar seus dias."
+      );
+      handleLogout();
+    }
+  }, [accessSession]);
 
   // Auto Trader Config & Session
   const [autoTraderConfig, setAutoTraderConfig] = useState<AutoTraderConfig>(() => {
@@ -617,6 +632,9 @@ export default function App() {
           autoTraderSession={autoTraderSession}
           onToggleAutoTrader={handleToggleAutoTrader}
           onOpenAutoTraderModal={() => setIsAutoTraderOpen(true)}
+          onLogout={handleLogout}
+          isAdmin={Boolean(accessSession?.isAdmin)}
+          onOpenAdmin={() => setIsAdminOpen(true)}
         />
 
         {/* Central Trading Chart Workstation with Hiove Real Traderoom & TradingView Live Engines */}
@@ -661,11 +679,64 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => window.open(`https://app.hiove.com/traderoom?ticker=${activeTicker}`, "_blank")}
-                className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#141A26] hover:bg-[#1E2638] text-[11px] text-amber-400 border border-[#1E2638] cursor-pointer"
+                className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#141A26] hover:bg-[#1E2638] text-[11px] text-amber-400 border border-[#1E2638] cursor-pointer transition-colors"
                 title="Abrir Hiove em Nova Guia"
               >
                 <span>Abrir Hiove.com</span>
                 <span className="text-[10px]">↗</span>
+              </button>
+
+              {/* Botão Painel ADM se for Administrador */}
+              {accessSession?.isAdmin && (
+                <button
+                  type="button"
+                  id="btn-header-admin-panel"
+                  onClick={() => setIsAdminOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gradient-to-r from-amber-500/20 to-[#FF7A00]/20 hover:from-amber-500/30 hover:to-[#FF7A00]/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold cursor-pointer transition-all shadow-sm"
+                  title="Abrir Painel Administrativo de Membros"
+                >
+                  <Key className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Painel ADM</span>
+                </button>
+              )}
+
+              {/* Badges de Sessão e Dias Restantes */}
+              {accessSession?.email && (
+                <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#121622] border border-[#1E2638] text-[11px]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-slate-400 font-mono max-w-[120px] truncate">
+                    {accessSession.email}
+                  </span>
+                  {accessSession.isAdmin ? (
+                    <span className="text-[9.5px] font-bold text-amber-400 bg-amber-500/15 px-1 py-0.2 rounded border border-amber-500/30">
+                      ADM
+                    </span>
+                  ) : accessSession.expiresAt ? (
+                    <span className="text-[9.5px] font-bold text-emerald-400 bg-emerald-500/15 px-1 py-0.2 rounded border border-emerald-500/30">
+                      {Math.max(
+                        0,
+                        Math.ceil((accessSession.expiresAt - Date.now()) / (1000 * 60 * 60 * 24))
+                      )}
+                      d
+                    </span>
+                  ) : (
+                    <span className="text-[9.5px] font-bold text-amber-300 bg-amber-500/15 px-1 py-0.2 rounded border border-amber-500/30">
+                      VIP
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* BOTÃO PRINCIPAL SOLICITADO: Sair CandleX IA */}
+              <button
+                type="button"
+                id="btn-logout-candlexia"
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white border border-rose-500/30 hover:border-rose-500/50 text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+                title="Sair do CandleX IA e voltar para a página de login"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sair CandleX IA</span>
               </button>
             </div>
           </div>
@@ -822,7 +893,12 @@ export default function App() {
       <AccessGateModal
         isOpen={isAccessGateOpen || !accessSession?.isAuthorized}
         currentSession={accessSession}
-        onAccessGranted={handleAccessGranted}
+        onAccessGranted={(session) => {
+          handleAccessGranted(session);
+          if (session.isAdmin) {
+            setIsAdminOpen(true);
+          }
+        }}
         onLogout={handleLogout}
         canClose={Boolean(accessSession?.isAuthorized)}
         onClose={() => setIsAccessGateOpen(false)}
@@ -834,6 +910,7 @@ export default function App() {
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
         onAdminLoginDirect={handleAccessGranted}
+        onLogout={handleLogout}
       />
     </div>
   );

@@ -95,16 +95,20 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
 
         localStorage.setItem("candlex_access_session", JSON.stringify(newSession));
 
-        setMessage(
-          data.isAdmin
-            ? "Acesso de Administrador Master Liberado! Inicializando..."
-            : "Acesso VIP Liberado com Sucesso! Inicializando Terminal CandleX AI..."
-        );
-
-        setTimeout(() => {
-          onAccessGranted(newSession);
-          if (onClose) onClose();
-        }, 1200);
+        if (data.isAdmin) {
+          setMessage("Identificado Administrador Master! Entrando direto no Painel Administrativo...");
+          setTimeout(() => {
+            onAccessGranted(newSession);
+            if (onClose) onClose();
+            if (onOpenAdmin) onOpenAdmin();
+          }, 800);
+        } else {
+          setMessage("Acesso VIP Liberado com Sucesso! Inicializando Terminal CandleX AI...");
+          setTimeout(() => {
+            onAccessGranted(newSession);
+            if (onClose) onClose();
+          }, 1200);
+        }
       } else {
         setResultState("DENIED");
         setMessage(
@@ -208,6 +212,19 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
               </div>
 
               <div className="flex items-center gap-2.5 pt-2">
+                {currentSession.isAdmin && onOpenAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onClose) onClose();
+                      onOpenAdmin();
+                    }}
+                    className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-[#FF7A00] hover:from-amber-400 hover:to-[#FF8C00] text-slate-950 text-xs font-black flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
+                  >
+                    <Key className="w-3.5 h-3.5 text-slate-950" />
+                    Acessar Painel ADM
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => handleValidate()}
@@ -220,10 +237,11 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="py-2.5 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2.5 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                  title="Sair do CandleX IA e voltar ao login"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  Desconectar
+                  Sair CandleX IA
                 </button>
               </div>
             </div>
@@ -284,12 +302,26 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
                 <button
                   type="submit"
                   disabled={loading || !email.trim()}
-                  className="w-full py-4 px-5 rounded-xl bg-gradient-to-r from-[#FF8C00] via-[#FF7A00] to-[#E65100] hover:from-[#FFA022] hover:to-[#FF6D00] text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_30px_rgba(255,122,0,0.4)] transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
+                  className={`w-full py-4 px-5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 ${
+                    email.trim().toLowerCase() === "herisson.trader.jt5@gmail.com"
+                      ? "bg-gradient-to-r from-amber-500 via-[#FF9500] to-[#FF7A00] hover:from-amber-400 hover:to-[#FFA022] text-slate-950 shadow-[0_0_35px_rgba(255,149,0,0.55)] border border-amber-300/40"
+                      : "bg-gradient-to-r from-[#FF8C00] via-[#FF7A00] to-[#E65100] hover:from-[#FFA022] hover:to-[#FF6D00] text-slate-950 shadow-[0_0_30px_rgba(255,122,0,0.4)]"
+                  }`}
                 >
                   {loading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
-                      <span>CONSULTANDO REGISTRO NA HIOVE API...</span>
+                      <span>
+                        {email.trim().toLowerCase() === "herisson.trader.jt5@gmail.com"
+                          ? "AUTENTICANDO ADMINISTRADOR MASTER..."
+                          : "CONSULTANDO REGISTRO NA HIOVE API..."}
+                      </span>
+                    </>
+                  ) : email.trim().toLowerCase() === "herisson.trader.jt5@gmail.com" ? (
+                    <>
+                      <Key className="w-4 h-4 text-slate-950" />
+                      <span>ENTRAR DIRETO NO PAINEL ADM</span>
+                      <ArrowRight className="w-4 h-4 text-slate-950" />
                     </>
                   ) : (
                     <>
