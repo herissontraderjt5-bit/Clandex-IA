@@ -29,6 +29,8 @@ import {
 } from "./types";
 import { calculateAllIndicators } from "./utils/technicalIndicators";
 import { soundManager } from "./utils/soundEffects";
+import { fetchLiveCandles } from "./services/marketData";
+import { requestAiAnalysis } from "./services/aiAnalysis";
 import confetti from "canvas-confetti";
 
 const INITIAL_BANKROLL_CONFIG: BankrollConfig = {
@@ -217,19 +219,14 @@ export default function App() {
     }
   }, [bankrollConfig]);
 
-  // Fetch Market Candles
+  // Fetch Market Candles (100% Cloud via Binance / Bybit / Continuous Engine)
   const fetchMarketData = useCallback(async () => {
     try {
-      const res = await fetch(
-        `/api/market/candles?ticker=${activeTicker}&interval=${timeframe}&limit=60`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (data.candles && Array.isArray(data.candles)) {
-          setCandles(data.candles);
-          const computed = calculateAllIndicators(data.candles);
-          setIndicators(computed);
-        }
+      const candlesData = await fetchLiveCandles(activeTicker, timeframe, 60);
+      if (candlesData && Array.isArray(candlesData) && candlesData.length > 0) {
+        setCandles(candlesData);
+        const computed = calculateAllIndicators(candlesData);
+        setIndicators(computed);
       }
     } catch (e) {
       console.warn("Market candle fetch error:", e);
@@ -245,7 +242,7 @@ export default function App() {
 
   const lastAnalysisTimeRef = React.useRef<number>(0);
 
-  // Run AI Neural Analysis
+  // Run AI Neural Analysis (100% Cloud Confluence & Institutional Engine)
   const runAiAnalysis = useCallback(async (force = false) => {
     const now = Date.now();
     if (!force && now - lastAnalysisTimeRef.current < 6000) {
@@ -261,41 +258,23 @@ export default function App() {
       // Allow visual scan animation to run through all 6 pillars deeply (10s)
       const minScanDuration = new Promise((resolve) => setTimeout(resolve, 10000));
       
-      const fetchPromise = fetch("/api/ai/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ticker: activeTicker,
-          timeframe: timeframe.toUpperCase(),
-          candles: candles.slice(-20),
-          indicators: latestIndicators,
-        }),
-      });
+      const analysisPromise = requestAiAnalysis(activeTicker, timeframe, candles, latestIndicators);
 
-      const [res] = await Promise.all([fetchPromise, minScanDuration]);
+      const [result] = await Promise.all([analysisPromise, minScanDuration]);
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.result) {
-          const result: AiAnalysisResult = {
-            ...data.result,
-            timestamp: Date.now(),
-            ticker: activeTicker,
-            priceAtAnalysis: candles[candles.length - 1]?.close || 0,
-          };
-          setAiAnalysis(result);
+      if (result) {
+        setAiAnalysis(result);
 
-          // Audio notification on signal generation
-          if (result.confidenceScore >= 70) {
-            if (result.direction === "CALL") {
-              soundManager.playCallAlert();
-            } else if (result.direction === "PUT") {
-              soundManager.playPutAlert();
-            }
-            soundManager.speakAlert(
-              `Alerta CandleX: Análise concluída em ${activeTicker}. Assertividade ${result.confidenceScore}%. Aguardando confirmação aos 10 segundos.`
-            );
+        // Audio notification on signal generation
+        if (result.confidenceScore >= 70) {
+          if (result.direction === "CALL") {
+            soundManager.playCallAlert();
+          } else if (result.direction === "PUT") {
+            soundManager.playPutAlert();
           }
+          soundManager.speakAlert(
+            `Alerta CandleX: Análise concluída em ${activeTicker}. Assertividade ${result.confidenceScore}%. Aguardando confirmação aos 10 segundos.`
+          );
         }
       }
     } catch (e) {

@@ -9,6 +9,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { AiAnalysisResult, TechnicalIndicators } from "../types";
+import { requestAiChatReply } from "../services/aiAnalysis";
 
 interface AiChatDrawerProps {
   isOpen?: boolean;
@@ -73,35 +74,23 @@ export const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: query,
-          context: {
-            activeTicker,
-            direction: currentAnalysis?.direction,
-            confidence: currentAnalysis?.confidenceScore,
-            rsi: indicators?.rsi,
-            pattern: indicators?.candlestickPattern,
-            trend: indicators?.trend,
-          },
-        }),
+      const reply = await requestAiChatReply(query, {
+        activeTicker,
+        direction: currentAnalysis?.direction,
+        confidence: currentAnalysis?.confidenceScore,
+        rsi: indicators?.rsi,
+        pattern: indicators?.candlestickPattern,
+        trend: indicators?.trend,
       });
 
-      const data = await response.json();
-      if (data.success && data.reply) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            text: data.reply,
-            time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-          },
-        ]);
-      } else {
-        throw new Error(data.error || "Sem resposta da IA.");
-      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: reply,
+          time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
     } catch (e: any) {
       setMessages((prev) => [
         ...prev,

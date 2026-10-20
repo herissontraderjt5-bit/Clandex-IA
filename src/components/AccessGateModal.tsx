@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AccessSession } from "../types";
 import { soundManager } from "../utils/soundEffects";
+import { verifyClientAccess } from "../services/clientStorage";
 import confetti from "canvas-confetti";
 
 interface AccessGateModalProps {
@@ -66,15 +67,7 @@ export const AccessGateModal: React.FC<AccessGateModalProps> = ({
     setMessage("");
 
     try {
-      const response = await fetch("/api/auth/access-check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: cleanEmail }),
-      });
-
-      const data = await response.json();
+      const data = await verifyClientAccess(cleanEmail);
 
       if (data.access === true) {
         setResultState("SUCCESS");

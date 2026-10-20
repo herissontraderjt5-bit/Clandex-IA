@@ -20,6 +20,12 @@ import {
 } from "lucide-react";
 import { ClientRecord, AccessSession } from "../types";
 import { soundManager } from "../utils/soundEffects";
+import {
+  getClientsFromDatabase,
+  saveClientToDatabase,
+  deleteClientFromDatabase,
+  MASTER_ADMIN_EMAIL,
+} from "../services/clientStorage";
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -27,7 +33,7 @@ interface AdminPanelModalProps {
   onAdminLoginDirect: (session: AccessSession) => void;
 }
 
-const ADMIN_EMAIL = "herisson.trader.jt5@gmail.com";
+const ADMIN_EMAIL = MASTER_ADMIN_EMAIL;
 
 export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   isOpen,
@@ -63,13 +69,10 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/clients");
-      const data = await res.json();
-      if (data.success && Array.isArray(data.clients)) {
-        setClients(data.clients);
-      }
+      const data = await getClientsFromDatabase();
+      setClients(data);
     } catch (err) {
-      console.error("Erro ao carregar clientes:", err);
+      console.error("Erro ao carregar clientes do Supabase:", err);
     } finally {
       setLoading(false);
     }
@@ -106,26 +109,23 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/admin/clients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: cleanEmail,
-          expiresAt,
-          status: "ACTIVE",
-          notes: newNotes.trim() || "Cadastrado manualmente pelo Administrador",
-        }),
+      const now = Date.now();
+      const updatedList = await saveClientToDatabase({
+        email: cleanEmail,
+        firstLoginAt: now,
+        lastLoginAt: now,
+        expiresAt,
+        status: "ACTIVE",
+        registeredVia: "ADMIN_MANUAL",
+        notes: newNotes.trim() || "Cadastrado manualmente pelo Administrador",
       });
 
-      const data = await res.json();
-      if (data.success && Array.isArray(data.clients)) {
-        setClients(data.clients);
-        setNewEmail("");
-        setNewNotes("");
-        soundManager.playOrderExecuted();
-      }
+      setClients(updatedList);
+      setNewEmail("");
+      setNewNotes("");
+      soundManager.playOrderExecuted();
     } catch (err) {
-      console.error("Erro ao adicionar cliente:", err);
+      console.error("Erro ao adicionar cliente no Supabase:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -137,35 +137,33 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       expiresAt = Date.now() + daysToAdd * 24 * 60 * 60 * 1000;
     }
 
+    const target = clients.find((c) => c.email.toLowerCase() === email.toLowerCase());
+    if (!target) return;
+
     try {
-      const res = await fetch("/api/admin/clients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, expiresAt }),
+      const updatedList = await saveClientToDatabase({
+        ...target,
+        expiresAt,
       });
-      const data = await res.json();
-      if (data.success && Array.isArray(data.clients)) {
-        setClients(data.clients);
-      }
+      setClients(updatedList);
     } catch (err) {
-      console.error("Erro ao atualizar validade:", err);
+      console.error("Erro ao atualizar validade no Supabase:", err);
     }
   };
 
   const handleToggleStatus = async (email: string, currentStatus: string) => {
     const nextStatus = currentStatus === "ACTIVE" ? "BLOCKED" : "ACTIVE";
+    const target = clients.find((c) => c.email.toLowerCase() === email.toLowerCase());
+    if (!target) return;
+
     try {
-      const res = await fetch("/api/admin/clients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, status: nextStatus }),
+      const updatedList = await saveClientToDatabase({
+        ...target,
+        status: nextStatus,
       });
-      const data = await res.json();
-      if (data.success && Array.isArray(data.clients)) {
-        setClients(data.clients);
-      }
+      setClients(updatedList);
     } catch (err) {
-      console.error("Erro ao alterar status:", err);
+      console.error("Erro ao alterar status no Supabase:", err);
     }
   };
 
@@ -173,15 +171,10 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     if (!confirm(`Tem certeza que deseja remover ${email}?`)) return;
 
     try {
-      const res = await fetch(`/api/admin/clients/${encodeURIComponent(email)}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (data.success && Array.isArray(data.clients)) {
-        setClients(data.clients);
-      }
+      const updatedList = await deleteClientFromDatabase(email);
+      setClients(updatedList);
     } catch (err) {
-      console.error("Erro ao excluir cliente:", err);
+      console.error("Erro ao excluir cliente no Supabase:", err);
     }
   };
 
